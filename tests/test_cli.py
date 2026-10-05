@@ -14,7 +14,7 @@ def test_prints_fields_with_their_source(tmp_path: Path, capsys: pytest.CaptureF
     assert "Total insured value   $14,450,000" in out
     assert "[SOV.xlsx, parser]" in out
     assert (
-        "! insured_name: 'Harbor Point Freight Inc' (ACORD_application.pdf) vs 'Harbor Point Logistics, LLC' (email body)"
-        in out
+        "! insured_name: 'Harbor Point Freight Inc' (ACORD_application.pdf)"
+        " vs 'Harbor Point Logistics, LLC' (email body)" in out
     )
     assert "NEEDS REVIEW: documents disagree on insured_name" in out
