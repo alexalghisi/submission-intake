@@ -5,12 +5,12 @@ from __future__ import annotations
 import csv
 import io
 import re
-from collections.abc import Iterable
 
 import openpyxl
 import pdfplumber
 
 from .email_parser import Attachment
+from .extract.spreadsheets import LOSS_COLUMNS, SOV_COLUMNS, find_header
 from .models import DocKind, Document
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -48,26 +48,18 @@ def read_attachment(doc_id: str, attachment: Attachment) -> Document:
     return document.model_copy(update={"kind": classify(document)})
 
 
-SOV_HEADERS = re.compile(r"\b(building|bldg|tiv|total insured value|contents|business income|construction)\b", re.I)
-LOSS_HEADERS = re.compile(r"\b(date of loss|loss date|incurred|paid|reserve|claim)\b", re.I)
 APPLICATION_MARKERS = re.compile(
     r"(commercial insurance application|applicant information|named insured|proposed eff)", re.I
 )
 
 
-def _header_hits(rows: Iterable[list[str]], pattern: re.Pattern[str]) -> int:
-    best = 0
-    for row in list(rows)[:10]:
-        best = max(best, sum(1 for cell in row if pattern.search(cell)))
-    return best
-
-
 def classify(document: Document) -> DocKind:
     """Rules first: they are cheap, explainable and right for the common formats."""
+    # The same header detection the parsers use, so a sheet is only called an SOV if the SOV parser can read it.
     if document.rows:
-        if _header_hits(document.rows, LOSS_HEADERS) >= 2:
+        if find_header(document.rows, LOSS_COLUMNS) is not None:
             return DocKind.LOSS_RUN
-        if _header_hits(document.rows, SOV_HEADERS) >= 2:
+        if find_header(document.rows, SOV_COLUMNS) is not None:
             return DocKind.SOV
     if APPLICATION_MARKERS.search(document.text):
         return DocKind.APPLICATION
