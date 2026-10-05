@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Broker submission intake - emails in S3, processing from SQS, results in Postgres.
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    NoEcho: true
+    Description: Postgres connection string (store it in Secrets Manager in production).
+
+Globals:
+  Function:
+    Runtime: python3.12
+    CodeUri: src/
+    MemorySize: 1024
+    Environment:
+      Variables:
+        DATABASE_URL: !Ref DatabaseUrl
+        QUEUE_URL: !Ref SubmissionQueue
+
+Resources:
+  InboxBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Named explicitly so the functions' policies can refer to it without a circular dependency.
+      BucketName: !Sub "${AWS::StackName}-inbox-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+
+  SubmissionQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 360 # six times the processing function's timeout
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+        maxReceiveCount: 5
+
+  EmailStoredFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: submission_intake.lambda_function.email_stored
+      Timeout: 30
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-inbox-${AWS::AccountId}"
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt SubmissionQueue.QueueName
+      Events:
+        EmailArrived:
+          Type: S3
+          Properties:
+            Bucket: !Ref InboxBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .eml
+
+  ProcessSubmissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: submission_intake.lambda_function.submissions_queued
+      Timeout: 60
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-inbox-${AWS::AccountId}"
+      Events:
+        Queued:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SubmissionQueue.Arn
+            BatchSize: 5
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+Outputs:
+  InboxBucketName:
+    Value: !Ref InboxBucket
+  DeadLetterQueueUrl:
+    Value: !Ref DeadLetterQueue
