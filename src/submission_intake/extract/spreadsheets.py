@@ -21,7 +21,7 @@ LOSS_COLUMNS: dict[str, re.Pattern[str]] = {
 }
 
 
-def _header(rows: list[list[str]], columns: dict[str, re.Pattern[str]]) -> tuple[int, dict[str, int]] | None:
+def find_header(rows: list[list[str]], columns: dict[str, re.Pattern[str]]) -> tuple[int, dict[str, int]] | None:
     """Finds the header row: the first of the top rows that names at least two of the expected columns."""
     for index, row in enumerate(rows[:10]):
         found: dict[str, int] = {}
@@ -42,7 +42,7 @@ def _value(row: list[str], col: int | None) -> int | None:
 
 
 def extract_sov(document: Document) -> list[Extraction]:
-    located = _header(document.rows, SOV_COLUMNS)
+    located = find_header(document.rows, SOV_COLUMNS)
     if located is None:
         return []
     header_index, cols = located
@@ -81,7 +81,7 @@ def extract_sov(document: Document) -> list[Extraction]:
 
 def extract_loss_run(document: Document, effective_date: date | None) -> list[Extraction]:
     """Counts losses in the five years before the effective date (or before today when it isn't known)."""
-    located = _header(document.rows, LOSS_COLUMNS)
+    located = find_header(document.rows, LOSS_COLUMNS)
     if located is None:
         return []
     header_index, cols = located
