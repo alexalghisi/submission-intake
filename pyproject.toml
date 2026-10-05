@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "submission-intake"
+version = "0.1.0"
+description = "Turns broker submission emails into structured, evidence-backed insurance submissions"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.8",
+    "psycopg[binary]>=3.2",
+    "boto3>=1.35",
+    "openpyxl>=3.1",
+    "pdfplumber>=0.11",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10", "moto[s3,sqs]>=5", "reportlab>=4", "boto3-stubs[s3,sqs]"]
+
+[project.scripts]
+submission-intake = "submission_intake.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+submission_intake = ["schema.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+files = ["src", "tests", "evals"]
+
+[[tool.mypy.overrides]]
+module = ["pdfplumber.*", "openpyxl.*", "reportlab.*", "moto.*"]
+ignore_missing_imports = true
