@@ -41,7 +41,7 @@ select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 python_version = "3.12"
 strict = true
 mypy_path = "src"
-files = ["src", "tests", "samples"]
+files = ["src", "tests", "samples", "evals"]
 
 [[tool.mypy.overrides]]
 module = ["pdfplumber.*", "openpyxl.*", "reportlab.*", "moto.*"]
