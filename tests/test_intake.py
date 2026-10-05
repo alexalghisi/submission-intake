@@ -69,7 +69,7 @@ def test_an_email_becomes_a_ready_submission(intake: Intake) -> None:
         ("ACORD_application.pdf", "application"),
         ("SOV.xlsx", "sov"),
         ("loss_runs.csv", "loss_run"),
-        ("(email body)", "email_body"),
+        ("email body", "email_body"),
     ]
 
 

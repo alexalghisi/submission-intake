@@ -27,7 +27,7 @@ class Pipeline:
     def documents(self, email: ParsedEmail) -> list[Document]:
         body = Document(
             id="email",
-            filename="(email body)",
+            filename="email body",
             content_type="text/plain",
             kind=DocKind.EMAIL_BODY,
             text=f"Subject: {email.subject}\nFrom: {email.sender}\n\n{email.body}",
