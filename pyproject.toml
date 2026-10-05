@@ -31,7 +31,7 @@ submission_intake = ["schema.sql"]
 testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
@@ -41,7 +41,7 @@ select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 python_version = "3.12"
 strict = true
 mypy_path = "src"
-files = ["src", "tests", "evals"]
+files = ["src", "tests", "samples"]
 
 [[tool.mypy.overrides]]
 module = ["pdfplumber.*", "openpyxl.*", "reportlab.*", "moto.*"]
