@@ -33,3 +33,9 @@ def test_reads_and_classifies_each_kind() -> None:
 def test_unknown_files_are_other() -> None:
     doc = read_attachment("d4", Attachment("photo.txt", "text/plain", b"just a note"))
     assert doc.kind is DocKind.OTHER
+
+
+def test_sov_layouts_without_obvious_keywords_are_still_recognised() -> None:
+    spec = Spec(sov_headers=("No.", "Location Address", "Bldg", "BPP", "BI"))
+    sov = read_attachment("d2", Attachment("schedule.xlsx", XLSX, sov_xlsx(spec)))
+    assert sov.kind is DocKind.SOV
