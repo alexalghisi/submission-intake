@@ -2,6 +2,8 @@
 
 Commercial insurance submissions arrive as broker emails with a pile of attachments: an application form, a statement of values with one row per location, and loss runs. Before an underwriter can look at the risk, someone has to read all of it and type the key facts into a system. This service does that step. Every value it produces comes with the document and the quote it came from, and it sends a submission to a person whenever the documents disagree or something required is missing.
 
+**Download:** [latest release](https://github.com/alexalghisi/submission-intake/releases/latest)
+
 ![Processing a clean submission and a conflicting one, then the evals and checks](docs/preview.gif)
 
 ## How it works
